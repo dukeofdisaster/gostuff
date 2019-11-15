@@ -1,0 +1,55 @@
+// works well for parsing a simplified json object but what about random shit from updated feeds?
+// {"webiocs" : {}, "addresses" : {}, "hashes" : {} }
+package main
+
+import (
+  "encoding/json"
+  "fmt"
+  "io/ioutil"
+  "os"
+)
+
+func main() {
+  arguments := os.Args
+  if len(arguments) == 1 {
+    fmt.Println("No filename provided...")
+    return
+  }
+
+  filename := arguments[1]
+  fileData, err := ioutil.ReadFile(filename)
+  if err != nil {
+    fmt.Println(err)
+    return
+  }
+  var parsedData map[string] interface{}
+  json.Unmarshal([]byte(fileData), &parsedData)
+
+
+
+  for key, value := range parsedData {
+    fmt.Println("key:", key, "value:", value)
+  }
+  fmt.Println("==========")
+  // how do we estract keys? we can extract values
+  //fmt.Println(parsedData["webiocs"].(map[string]interface{})["http://smalltowncarrental.com/cnr5waoyz/las67523/"])
+
+  // this gives an error: ./199_parsingjson.go:37:33: invalid argument parsedData["webiocs"] (type interface {}) for len
+  //web_keys := make([]string, len(parsedData["webiocs"])) //<--------- THIS IS WRONG
+
+  // This is correct because we're actually getting the length of the next map object; i.e the nested dict
+  // which we can then use to make our string slice
+  web_keys := make([]string, len(parsedData["webiocs"].(map[string]interface{})))
+  i := 0
+  // we use the same syntax to range over the map
+  for k := range parsedData["webiocs"].(map[string]interface{}) {
+    web_keys[i] = k
+    i++
+  }
+  fmt.Println(web_keys)
+  fmt.Println("==========")
+
+  for k := range web_keys {
+    fmt.Println(web_keys[k])
+  }
+}
